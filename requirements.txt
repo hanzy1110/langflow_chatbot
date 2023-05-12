@@ -1,0 +1,7 @@
+langchain 
+llama_index
+openai
+transformers
+torch
+sentence_transformers
+weaviate-client

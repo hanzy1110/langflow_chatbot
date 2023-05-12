@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  weaviate:
+    image: semitechnologies/weaviate:latest
+    environment:
+      - WEAVIATE_HOST=http://0.0.0.0:${WV_PORT}
+      - WEAVIATE_CONFIG_PASSWORD=${WV_PASS}
+    volumes:
+      - ${WV_DIR}:/var/lib/weaviate
+
+  # chatbot_api:
+  #   container_name: chatbot_api
+  #   depends_on:
+  #     - crm_db
+  #   build: .
+  #   env_file: .env.dev
+  #   ports:
+  #     - "${WEB_PORT}:8000"  #Web port 
+  #     - "${DBG_PORT}:4444"
+  #   enviroment:
+  #     - WEAVIATE_HOST=http://0.0.0.0:${WV_PORT}
+  #     - WEAVIATE_CONFIG_PASSWORD=${WV_PASS}
+  #   # volume for hot-reloading!
+  #   volumes:
+  #     - .:/home/code
+
+  #   #   - WEB_PORT=${WEB_PORT}
+  #   restart: unless-stopped
+  #   command: ["/home/code/entrypoint.sh"]
+  #   # command: sh -c "python manage.py runserver 0.0.0.0:${WEB_PORT}"
+
