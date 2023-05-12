@@ -6,8 +6,23 @@ services:
     environment:
       - WEAVIATE_HOST=http://0.0.0.0:${WV_PORT}
       - WEAVIATE_CONFIG_PASSWORD=${WV_PASS}
+      - QUERY_DEFAULTS_LIMIT: 20
+      - AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      - PERSISTENCE_DATA_PATH: "./data"
+      - DEFAULT_VECTORIZER_MODULE: text2vec-transformers
+      - ENABLE_MODULES: text2vec-transformers
+      - TRANSFORMERS_INFERENCE_API: http://t2v-transformers:8080
+      - CLUSTER_HOSTNAME: 'node1'
     volumes:
       - ${WV_DIR}:/var/lib/weaviate
+
+  t2v-transformers:
+    image: semitechnologies/transformers-inference:sentence-transformers-multi-qa-MiniLM-L6-cos-v1
+    environment:
+      - ENABLE_CUDA: 0 
+      # set to 1 to enable
+      # - NVIDIA_VISIBLE_DEVICES: "all"
+      # enable if running with CUDA
 
   # chatbot_api:
   #   container_name: chatbot_api
@@ -21,6 +36,7 @@ services:
   #   enviroment:
   #     - WEAVIATE_HOST=http://0.0.0.0:${WV_PORT}
   #     - WEAVIATE_CONFIG_PASSWORD=${WV_PASS}
+        # - OPEN_API_KEY=${OPEN_API_KEY}
   #   # volume for hot-reloading!
   #   volumes:
   #     - .:/home/code
