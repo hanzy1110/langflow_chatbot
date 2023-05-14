@@ -1,28 +1,86 @@
-import weaviate
+import os
 import json
+import weaviate
+import pandas as pd
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+load_dotenv(".env.dev")
+
+MAX_TEXT_LENGTH=1000  # Maximum num of text characters to use
+NUMBER_PRODUCTS = 2500  
+DATA_PATH = Path(os.getcwd()).resolve() / "data/product_data.csv"
+OPEN_AI_KEY = os.environ.get("OPEN_AI_TOKEN", None)
+WEAVIATE_URL = os.environ.get("WV_HOST", None)
+WV_USER = os.environ.get("WV_USER", None)
+WV_PASS = os.environ.get("WV_PASS", None)
+
 
 client = weaviate.Client(
-    url = "https://some-endpoint.weaviate.network",  # Replace with your endpoint
-    auth_client_secret=weaviate.AuthApiKey(api_key="YOUR-WEAVIATE-API-KEY"),  # Replace w/ your Weaviate instance API key
+    url = WEAVIATE_URL,  # Replace with your endpoint
+    auth_client_secret=weaviate.AuthClientPassword(
+        username = WV_USER,  # Replace w/ your WCS username
+        password = WV_PASS,  # Replace w/ your WCS password
+    ),
     additional_headers = {
-        "X-OpenAI-Api-Key": "YOUR-OPENAI-API-KEY"  # Replace with your inference API key
+        "X-OpenAI-Api-Key": OPEN_AI_KEY  # Replace with your inference API key
     }
 )
 
 # ===== add schema =====
+# class_obj = {
+#     "class": "Question",
+#     "vectorizer": "text2vec-openai"
+# }
 class_obj = {
-    "class": "Question",
-    "vectorizer": "text2vec-openai"
-}
-
+      "class": "Document",
+      "description": "A class called document",
+      "vectorizer": "text2vec-openai",
+      "moduleConfig": {
+        "text2vec-openai": {
+          "model": "ada",
+          "modelVersion": "002",
+          "type": "text"
+        }
+      },
+    }
 client.schema.create_class(class_obj)
 
 # ===== import data =====
+ 
+
+def auto_truncate(val):
+    """Truncate the given text."""
+    return val[:MAX_TEXT_LENGTH]
+ 
+# Load Product data and truncate long text fields
+all_prods_df = pd.read_csv(DATA_PATH, converters={
+    'bullet_point': auto_truncate,
+    'item_keywords': auto_truncate,
+    'item_name': auto_truncate
+})
+
+# Replace empty strings with None and drop
+all_prods_df['item_keywords'].replace('', None, inplace=True)
+all_prods_df.dropna(subset=['item_keywords'], inplace=True)
+ 
+# Reset pandas dataframe index
+all_prods_df.reset_index(drop=True, inplace=True)
+# Num products to use (subset)
+ 
+# Get the first 2500 products
+product_metadata = ( 
+    all_prods_df
+     .head(NUMBER_PRODUCTS)
+     .to_dict(orient='index')
+)
+ 
 
 with client.batch as batch:
     batch.batch_size=100
     # Batch import all Questions
-    for i, d in enumerate(data):
+    for i, d in enumerate(product_metadata):
         print(f"importing question: {i+1}")
 
         properties = {
