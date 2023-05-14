@@ -1,3 +1,5 @@
+from src.chatbot import Chatbot
+
 # create a chat history buffer
 chat_history = []
 # gather user input for the first question to kick off the bot

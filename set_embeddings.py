@@ -1,15 +1,15 @@
 import os
 import json
+import time
 import weaviate
 import pandas as pd
 from pathlib import Path
 
 from dotenv import load_dotenv
-
 load_dotenv(".env.dev")
 
 MAX_TEXT_LENGTH=1000  # Maximum num of text characters to use
-NUMBER_PRODUCTS = 2500  
+NUMBER_PRODUCTS = 10  
 DATA_PATH = Path(os.getcwd()).resolve() / "data/product_data.csv"
 OPEN_AI_KEY = os.environ.get("OPEN_AI_TOKEN", None)
 WEAVIATE_URL = os.environ.get("WV_HOST", None)
@@ -34,8 +34,8 @@ client = weaviate.Client(
 #     "vectorizer": "text2vec-openai"
 # }
 class_obj = {
-      "class": "Document",
-      "description": "A class called document",
+      "class": "AmazonProduct",
+      "description": "Amazon product index items",
       "vectorizer": "text2vec-openai",
       "moduleConfig": {
         "text2vec-openai": {
@@ -45,7 +45,7 @@ class_obj = {
         }
       },
     }
-client.schema.create_class(class_obj)
+# client.schema.create_class(class_obj)
 
 # ===== import data =====
  
@@ -70,23 +70,14 @@ all_prods_df.reset_index(drop=True, inplace=True)
 # Num products to use (subset)
  
 # Get the first 2500 products
-product_metadata = ( 
-    all_prods_df
-     .head(NUMBER_PRODUCTS)
-     .to_dict(orient='index')
-)
+product_metadata = all_prods_df.head(NUMBER_PRODUCTS).fillna('').to_dict(orient='index')
  
+print(list(product_metadata[0].keys()))
 
 with client.batch as batch:
-    batch.batch_size=100
+    batch.batch_size=3
     # Batch import all Questions
-    for i, d in enumerate(product_metadata):
-        print(f"importing question: {i+1}")
-
-        properties = {
-            "answer": d["Answer"],
-            "question": d["Question"],
-            "category": d["Category"],
-        }
-
-        client.batch.add_data_object(properties, "Question")
+    for key, d in product_metadata.items():
+        print(f"importing AmazonProduct: {key+1}")
+        client.batch.add_data_object(d, "AmazonProduct")
+        time.sleep(20.0)

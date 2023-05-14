@@ -26,7 +26,7 @@ services:
       CLUSTER_HOSTNAME: 'node1'
       LOG_LEVEL: 'debug'
       CLUSTER_HOSTNAME: 'node1'
-      AUTOSCHEMA_ENABLED: 'false'
+      AUTOSCHEMA_ENABLED: 'true'
     volumes:
       - ${WV_DIR}:/var/lib/weaviate
 
