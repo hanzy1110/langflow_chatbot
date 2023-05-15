@@ -12,8 +12,21 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.llms import OpenAI
 from langchain.prompts.prompt import PromptTemplate
 
-from langchain.retrievers.weaviate_hybrid_search import WeaviateHybridSearchRetriever
 from langchain.schema import Document
+from llama_index.readers.weaviate import WeaviateReader
+from llama_index.storage.storage_context import StorageContext
+
+from llama_index import (
+    GPTVectorStoreIndex, 
+    GPTSimpleKeywordTableIndex, 
+    GPTListIndex, 
+    GPTVectorStoreIndex,
+    SimpleDirectoryReader
+)
+from llama_index.vector_stores import WeaviateVectorStore
+
+
+
 
 load_dotenv(".env.dev")
 
@@ -50,31 +63,27 @@ class Chatbot:
         self.f_template = f_template
 
         self.wv_client = weaviate.Client(
-            url = WEAVIATE_URL,  # Replace with your endpoint
-            additional_headers = {
-                "X-OpenAI-Api-Key": OPEN_AI_KEY  # Replace with your inference API key
-            }
+            url=WEAVIATE_URL,
+            additional_headers={"X-OpenAI-Api-Key": OPEN_AI_KEY}
         )
         assert self.wv_client.is_live() and self.wv_client.is_ready()
 
-
-    # TODO: Set the reader using Llama index. Join everything and test the chatbot using 
-    # main.py. Then quickly set up a django API with a post and a GET method with sqlite3
     def configure_retriever(self):
-        self.retriever = WeaviateHybridSearchRetriever(
-            client=self.wv_client,
-            text_key='bullet_point'
-        )
+        # TODO
+        # load Documents and test!
+        self.vector_store = WeaviateVectorStore(weaviate_client=self.wv_client, class_prefix='AmazonProducts')
+        storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
+        self.index = GPTVectorStoreIndex.from_documents(nyc_documents, storage_context=storage_context)
     
     def configure_prompt(self, **kwargs):
-        self.qa_prompt= PromptTemplate.from_template(self.f_template)
+        self.qa_prompt = PromptTemplate.from_template(self.f_template)
         self.condense_question_prompt = PromptTemplate.from_template(self.template)
         # define two LLM models from OpenAI
 
     def configure_chain(self):
         
         self.llm = OpenAI(client=None, temperature=0)
-        streaming_llm = OpenAI(
+        self.streaming_llm = OpenAI(
             client=None,
             streaming=True,
             callback_manager=CallbackManager([
@@ -84,23 +93,21 @@ class Chatbot:
             max_tokens=150,
             temperature=0.2
         )
- 
- 
         # use the LLM Chain to create a question creation chain
-        question_generator = LLMChain(
+        self.question_generator = LLMChain(
             llm=self.llm,
             prompt=self.condense_question_prompt
         )
  
         # use the streaming LLM to create a question answering chain
         doc_chain = load_qa_chain(
-            llm=streaming_llm,
+            llm=self.streaming_llm,
             chain_type="stuff",
             prompt=self.qa_prompt
         )
 
-        chatbot = ConversationalRetrievalChain(
-            retriever=vectorstore.as_retriever(),
+        self.chatbot = ConversationalRetrievalChain(
+            retriever=self.vector_store.as_retriever(),
             combine_docs_chain=doc_chain,
-            question_generator=question_generator
+            question_generator=self.question_generator
         )
