@@ -12,12 +12,13 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.llms import OpenAI
 from langchain.prompts.prompt import PromptTemplate
 
+from langchain.retrievers.weaviate_hybrid_search import WeaviateHybridSearchRetriever
+from langchain.schema import Document
+
 load_dotenv(".env.dev")
 
 OPEN_AI_KEY = os.environ.get("OPEN_AI_TOKEN", None)
 WEAVIATE_URL = os.environ.get("WV_HOST", None)
-
-
 
 TEMPLATE = """Given the following chat history and a follow up question, rephrase the follow up input question to be a standalone question.
 Or end the conversation if it seems like it's done.
@@ -48,13 +49,23 @@ class Chatbot:
         self.template = template
         self.f_template = f_template
 
-        self.wc_client = weaviate.Client(
+        self.wv_client = weaviate.Client(
             url = WEAVIATE_URL,  # Replace with your endpoint
             additional_headers = {
                 "X-OpenAI-Api-Key": OPEN_AI_KEY  # Replace with your inference API key
             }
         )
+        assert self.wv_client.is_live() and self.wv_client.is_ready()
 
+
+    # TODO: Set the reader using Llama index. Join everything and test the chatbot using 
+    # main.py. Then quickly set up a django API with a post and a GET method with sqlite3
+    def configure_retriever(self):
+        self.retriever = WeaviateHybridSearchRetriever(
+            client=self.wv_client,
+            text_key='bullet_point'
+        )
+    
     def configure_prompt(self, **kwargs):
         self.qa_prompt= PromptTemplate.from_template(self.f_template)
         self.condense_question_prompt = PromptTemplate.from_template(self.template)
