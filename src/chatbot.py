@@ -19,13 +19,12 @@ from llama_index.storage.storage_context import StorageContext
 from llama_index import (
     GPTVectorStoreIndex, 
     GPTSimpleKeywordTableIndex, 
-    GPTListIndex, 
-    GPTVectorStoreIndex,
-    SimpleDirectoryReader
 )
+
+from src.document_loader import DocumentLoader
 from llama_index.vector_stores import WeaviateVectorStore
 
-load_dotenv(".env.dev")
+load_dotenv("../.env.dev")
 
 OPEN_AI_KEY = os.environ.get("OPEN_AI_TOKEN", None)
 WEAVIATE_URL = os.environ.get("WV_HOST", None)
@@ -59,6 +58,7 @@ class Chatbot:
         self.template = template
         self.f_template = f_template
 
+        self.document_loader = DocumentLoader().clean_data()
         self.wv_client = weaviate.Client(
             url=WEAVIATE_URL,
             additional_headers={"X-OpenAI-Api-Key": OPEN_AI_KEY}
@@ -68,17 +68,17 @@ class Chatbot:
     def configure_retriever(self):
         # TODO
         # load Documents and test!
-        self.vector_store = WeaviateVectorStore(weaviate_client=self.wv_client, class_prefix='AmazonProducts')
-        storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
-        self.index = GPTVectorStoreIndex.from_documents(nyc_documents, storage_context=storage_context)
-    
+        self.vector_store = WeaviateVectorStore(weaviate_client=self.wv_client, 
+                                                class_prefix='AmazonProducts')
+        self.storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
+
     def configure_prompt(self, **kwargs):
         self.qa_prompt = PromptTemplate.from_template(self.f_template)
         self.condense_question_prompt = PromptTemplate.from_template(self.template)
         # define two LLM models from OpenAI
 
     def configure_chain(self):
-        
+
         self.llm = OpenAI(client=None, temperature=0)
         self.streaming_llm = OpenAI(
             client=None,
@@ -90,6 +90,9 @@ class Chatbot:
             max_tokens=150,
             temperature=0.2
         )
+        
+        self.index = GPTVectorStoreIndex.from_documents(nyc_documents, storage_context=storage_context)
+
         # use the LLM Chain to create a question creation chain
         self.question_generator = LLMChain(
             llm=self.llm,

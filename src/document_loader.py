@@ -1,13 +1,17 @@
 import os
 import pandas as pd
 from pathlib import Path
-
 from dotenv import load_dotenv
+
+from llama_index.readers.weaviate import WeaviateReader
+
 load_dotenv(".env.dev")
 
 MAX_TEXT_LENGTH = 1000
 NUMBER_PRODUCTS = 10
 DATA_PATH = Path(os.getcwd()).resolve() / "data/product_data.csv"
+OPEN_AI_KEY = os.environ.get("OPEN_AI_TOKEN", None)
+WEAVIATE_URL = os.environ.get("WV_HOST", None)
 
 
 def auto_truncate(val):
@@ -16,16 +20,32 @@ def auto_truncate(val):
 
 
 class DocumentLoader:
-    def __init__(self):
-        all_prods_df = pd.read_csv(DATA_PATH, converters={
+    def __init__(self, max_documents=NUMBER_PRODUCTS, data_dir=DATA_PATH):
+        self.max_documents = max_documents
+        self.data_dir = data_dir
+
+        self.all_prods_df = pd.read_csv(self.data_dir, converters={
             'bullet_point': auto_truncate,
             'item_keywords': auto_truncate,
             'item_name': auto_truncate
         })
 
-        all_prods_df['item_keywords'].replace('', None, inplace=True)
-        all_prods_df.dropna(subset=['item_keywords'], inplace=True)
+    def clean_data(self,):
+        self.all_prods_df['item_keywords'].replace('', None, inplace=True)
+        self.all_prods_df.dropna(subset=['item_keywords'], inplace=True)
+        self.all_prods_df.reset_index(drop=True, inplace=True)
+        return self
 
-        all_prods_df.reset_index(drop=True, inplace=True)
-        self.product_metadata = all_prods_df.head(
-            NUMBER_PRODUCTS).fillna('').to_dict(orient='index')
+    def get_documents(self,):
+        product_metadata = self.all_prods_df.head(
+                self.max_documents).fillna('').to_dict(orient='index')
+
+        return product_metadata
+
+    def get_documents_from_weaviate(self, query=None):
+        reader = WeaviateReader(WEAVIATE_URL)
+        if query:
+            documents = reader.load_data(class_name="AmazonProduct", **query)
+        else:
+            documents = reader.load_data(class_name="AmazonProduct", **query)
+        
