@@ -25,9 +25,6 @@ from llama_index import (
 )
 from llama_index.vector_stores import WeaviateVectorStore
 
-
-
-
 load_dotenv(".env.dev")
 
 OPEN_AI_KEY = os.environ.get("OPEN_AI_TOKEN", None)
