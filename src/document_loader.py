@@ -2,15 +2,15 @@ import os
 import pandas as pd
 from pathlib import Path
 from dotenv import load_dotenv
+from llama_index import WeaviateReader
 
-from llama_index.readers.weaviate import WeaviateReader
-
+# from llama_index.readers.weaviate import WeaviateReader
 load_dotenv(".env.dev")
 
 MAX_TEXT_LENGTH = 1000
-NUMBER_PRODUCTS = 10
+NUMBER_PRODUCTS = 3000
 DATA_PATH = Path(os.getcwd()).resolve() / "data/product_data.csv"
-OPEN_AI_KEY = os.environ.get("OPEN_AI_TOKEN", None)
+OPEN_AI_KEY = os.environ.get("OPENAI_API_KEY", None)
 WEAVIATE_URL = os.environ.get("WV_HOST", None)
 
 
@@ -39,14 +39,20 @@ class DocumentLoader:
 
     def get_documents(self,):
         product_metadata = self.all_prods_df.head(
-                self.max_documents).fillna('').to_dict(orient='index')
+            self.max_documents).fillna('').to_dict(orient='index')
 
         return product_metadata
 
     def get_documents_from_weaviate(self, query=None):
+        properties = ["item_id", "marketplace", "country",
+                      "main_image_id", "domain_name",
+                      "bullet_point", "item_keywords", "material",
+                      "brand", "color", "item_name", "model_name",
+                      "model_number", "product_type"]
         reader = WeaviateReader(self.weaviate_url)
         if query:
-            return reader.load_data(class_name="AmazonProduct", **query)
+            return reader.load_data(class_name="AmazonProduct",
+                                    properties=properties, **query)
         else:
-            return reader.load_data(class_name="AmazonProduct")
-        
+            return reader.load_data(class_name="AmazonProduct",
+                                    properties=properties)

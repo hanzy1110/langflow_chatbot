@@ -3,3 +3,6 @@ llama_index
 openai
 weaviate-client
 python-dotenv
+fire
+fastapi
+uvicorn

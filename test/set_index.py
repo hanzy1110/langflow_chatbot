@@ -12,7 +12,7 @@ from src.document_loader import DocumentLoader
 load_dotenv(".env.dev")
 
 product_metadata = DocumentLoader(100).get_documents_from_weaviate()
-OPEN_AI_KEY = os.environ.get("OPEN_AI_TOKEN", None)
+OPEN_AI_KEY = os.environ.get("OPENAI_API_KEY", None)
 WEAVIATE_URL = os.environ.get("WV_HOST", None)
 INDEX_DIR = os.environ.get("INDEX_DIR", None)
 

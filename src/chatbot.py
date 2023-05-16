@@ -1,43 +1,32 @@
 import os
-import time
+import sys
+import logging
 import weaviate
 from dotenv import load_dotenv
 
-from langchain.callbacks.base import CallbackManager
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-from langchain.chains import (
-    ConversationalRetrievalChain,
-    LLMChain
-)
-from langchain.chains.question_answering import load_qa_chain
 from langchain.llms import OpenAI
-from langchain.prompts.prompt import PromptTemplate
-
-from langchain.schema import Document
-from llama_index.storage.storage_context import StorageContext
-
-from llama_index import (
-    GPTVectorStoreIndex, 
-    GPTSimpleKeywordTableIndex, 
-)
+from llama_index import GPTVectorStoreIndex
 
 # do imports
-from langchain.agents import Tool
+# from langchain.agents import Tool
 from langchain.chains.conversation.memory import ConversationBufferMemory
-from langchain.chat_models import ChatOpenAI
-from langchain.agents import initialize_agent
+from llama_index.storage.storage_context import StorageContext
+# from langchain.chat_models import ChatOpenAI
+# from langchain.agents import initialize_agent
 
 from llama_index.langchain_helpers.agents import LlamaToolkit, create_llama_chat_agent, IndexToolConfig
-from llama_index import GPTListIndex, LLMPredictor, ServiceContext, load_index_from_storage
+from llama_index import LLMPredictor, ServiceContext, load_index_from_storage
 
 from src.document_loader import DocumentLoader
-from llama_index.vector_stores import WeaviateVectorStore
 
-load_dotenv("../.env.dev")
 
-OPEN_AI_KEY = os.environ.get("OPEN_AI_TOKEN", None)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
+
+OPEN_AI_KEY = os.environ.get("OPEN_AI_KEY", None)
 WEAVIATE_URL = os.environ.get("WV_HOST", None)
 INDEX_DIR = os.environ.get("INDEX_DIR", None)
+
 
 class Chatbot:
     def __init__(self, index_dir=INDEX_DIR):
@@ -57,15 +46,12 @@ class Chatbot:
         class_obj = {
               "class": "AmazonProduct",
               "description": "Amazon product index items",
-              "vectorizer": "text2vec-openai",
-              "moduleConfig": {
-                "text2vec-openai": {
-                  "model": "ada",
-                  "modelVersion": "002",
-                  "type": "text"
-                }
-              },
             }
+        try:
+            self.wv_client.schema.create_class(class_obj)
+        except Exception as e:
+            print(e)
+
         product_metadata = self.document_loader.clean_data().get_documents()
         with self.wv_client.batch as batch:
             batch.batch_size = 3
@@ -73,7 +59,6 @@ class Chatbot:
             for key, d in product_metadata.items():
                 print(f"importing AmazonProduct: {key+1}")
                 self.wv_client.batch.add_data_object(d, "AmazonProduct")
-                time.sleep(20.0)
 
     def set_index(self,):
         product_metadata = self.document_loader.get_documents_from_weaviate()

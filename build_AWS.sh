@@ -8,7 +8,8 @@ docker-compose --env-file .env.dev up -d
 echo Waiting for containers...
 sleep 10
 docker ps -a 
-docker logs -tf weaviate
+docker logs -t weaviate
+docker logs -tf chatbot_api
 
 # echo "----------------------<>-----------------------"
 # docker logs -t --follow chatbot_api

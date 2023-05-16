@@ -1,26 +1,35 @@
 from src.chatbot import Chatbot
 
-from fire import Fire
-from dotenv import load_dotenv
-load_dotenv(".env.dev")
+from fastapi import FastAPI
+from pydantic import BaseModel
 
-def get_mode(mode, chatbot):
-    match mode:
-        case "vector_db":
-            chatbot.configure_vector_db()
-        case "index":
-            chatbot.set_index()
-        case "chat":
-            agent_chain = chatbot.set_chatbot()
-            while True:
-                text_input = input("User: ")
-                response = agent_chain.run(input=text_input)
-                print(f'Agent: {response}')
-    
+app = FastAPI()
 
-def main(mode):
-    chatbot = Chatbot()
-    get_mode(mode, chatbot)
 
-if __name__ == "__main__":
-    Fire(main)
+# Define a request model for the chatbot API
+class ChatbotRequest(BaseModel):
+    message: str
+
+
+# Define a response model for the chatbot API
+class ChatbotResponse(BaseModel):
+    response: str
+
+
+# Instantiate your chatbot model here
+chatbot_model = Chatbot()
+# agent_chain = chatbot_model.set_chatbot()
+
+
+# Define the API endpoint for the chatbot
+@app.post("/chatbot")
+def chatbot_endpoint(request: ChatbotRequest) -> ChatbotResponse:
+    message = request.message
+
+    # Pass the message to your chatbot model and get the response
+    # response = agent_chain.run(input=message)
+
+    # Placeholder response for demonstration purposes
+    response = "This is the response from the chatbot model."
+
+    return ChatbotResponse(response=response)
