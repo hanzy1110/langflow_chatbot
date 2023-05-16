@@ -1,15 +1,26 @@
 from src.chatbot import Chatbot
 
-# create a chat history buffer
-chat_history = []
-# gather user input for the first question to kick off the bot
-question = input("Hi! What are you looking for today?")
- 
-# keep the bot running in a loop to simulate a conversation
-while True:
-    result = chatbot(
-        {"question": question, "chat_history": chat_history}
-    )
-    print("\n")
-    chat_history.append((result["question"], result["answer"]))
-    question = input()
+from fire import Fire
+from dotenv import load_dotenv
+load_dotenv(".env.dev")
+
+def get_mode(mode, chatbot):
+    match mode:
+        case "vector_db":
+            chatbot.configure_vector_db()
+        case "index":
+            chatbot.set_index()
+        case "chat":
+            agent_chain = chatbot.set_chatbot()
+            while True:
+                text_input = input("User: ")
+                response = agent_chain.run(input=text_input)
+                print(f'Agent: {response}')
+    
+
+def main(mode):
+    chatbot = Chatbot()
+    get_mode(mode, chatbot)
+
+if __name__ == "__main__":
+    Fire(main)

@@ -20,9 +20,10 @@ def auto_truncate(val):
 
 
 class DocumentLoader:
-    def __init__(self, max_documents=NUMBER_PRODUCTS, data_dir=DATA_PATH):
+    def __init__(self, max_documents=NUMBER_PRODUCTS, data_dir=DATA_PATH, weaviate_url=WEAVIATE_URL):
         self.max_documents = max_documents
         self.data_dir = data_dir
+        self.weaviate_url = weaviate_url
 
         self.all_prods_df = pd.read_csv(self.data_dir, converters={
             'bullet_point': auto_truncate,
@@ -43,9 +44,9 @@ class DocumentLoader:
         return product_metadata
 
     def get_documents_from_weaviate(self, query=None):
-        reader = WeaviateReader(WEAVIATE_URL)
+        reader = WeaviateReader(self.weaviate_url)
         if query:
-            documents = reader.load_data(class_name="AmazonProduct", **query)
+            return reader.load_data(class_name="AmazonProduct", **query)
         else:
-            documents = reader.load_data(class_name="AmazonProduct", **query)
+            return reader.load_data(class_name="AmazonProduct")
         
