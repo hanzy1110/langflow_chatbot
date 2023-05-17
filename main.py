@@ -18,7 +18,7 @@ class ChatbotResponse(BaseModel):
 
 # Instantiate your chatbot model here
 chatbot_model = Chatbot()
-# agent_chain = chatbot_model.set_chatbot()
+agent_chain = chatbot_model.set_chatbot()
 
 
 # Define the API endpoint for the chatbot
@@ -27,9 +27,9 @@ def chatbot_endpoint(request: ChatbotRequest) -> ChatbotResponse:
     message = request.message
 
     # Pass the message to your chatbot model and get the response
-    # response = agent_chain.run(input=message)
+    response = agent_chain.run(input=message)
 
     # Placeholder response for demonstration purposes
-    response = "This is the response from the chatbot model."
+    # response = "This is the response from the chatbot model."
 
     return ChatbotResponse(response=response)

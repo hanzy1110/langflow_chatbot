@@ -72,19 +72,27 @@ class Chatbot:
             storage_context=storage_context,
         )
         storage_context.persist(persist_dir=str(self.index_dir))
+        return storage_context
 
     def get_index(self,):
-        llm_predictor = LLMPredictor(llm=OpenAI(temperature=0, max_tokens=512))
-        service_context = ServiceContext.from_defaults(llm_predictor=llm_predictor)
-        storage_context = StorageContext.from_defaults(persist_dir=self.index_dir)
-        return load_index_from_storage(storage_context)
-    
+
+        try:
+            # llm_predictor = LLMPredictor(llm=OpenAI(temperature=0, max_tokens=512))
+            # service_context = ServiceContext.from_defaults(llm_predictor=llm_predictor)
+            storage_context = StorageContext.from_defaults(persist_dir=self.index_dir)
+            return load_index_from_storage(storage_context)
+        except Exception as e:
+            print(e)
+            storage_context = self.set_index()
+            return load_index_from_storage(storage_context)
+
+
     def set_chatbot(self):
         self.llm = OpenAI(client=None, temperature=0)
         index = self.get_index()
 
         query_engine = index.as_query_engine(similarity_top_k=3,)
-        tool_config = IndexToolConfig(query_engine=query_engine, 
+        tool_config = IndexToolConfig(query_engine=query_engine,
                                       name=f"AMAZON Vector Index",
                                       description="Amazon Products Vector index",
                                       tool_kwargs={"return_direct": True})
