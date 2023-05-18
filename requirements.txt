@@ -6,3 +6,5 @@ python-dotenv
 fire
 fastapi
 uvicorn
+transformers
+torch

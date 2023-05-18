@@ -22,7 +22,6 @@ services:
       AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
       PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
       DEFAULT_VECTORIZER_MODULE: 'text2vec-contextionary'
-      CLUSTER_HOSTNAME: 'node1'
       LOG_LEVEL: 'debug'
       CLUSTER_HOSTNAME: 'node1'
       AUTOSCHEMA_ENABLED: 'true'

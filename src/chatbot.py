@@ -2,10 +2,10 @@ import os
 import sys
 import logging
 import weaviate
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
-from langchain.llms import OpenAI
-from llama_index import GPTVectorStoreIndex
+# from langchain.llms import OpenAI
+from llama_index import GPTVectorStoreIndex, GPTListIndex
 
 # do imports
 # from langchain.agents import Tool
@@ -14,11 +14,15 @@ from llama_index.storage.storage_context import StorageContext
 # from langchain.chat_models import ChatOpenAI
 # from langchain.agents import initialize_agent
 
-from llama_index.langchain_helpers.agents import LlamaToolkit, create_llama_chat_agent, IndexToolConfig
+from llama_index.langchain_helpers.agents import (LlamaToolkit,
+                                                  create_llama_chat_agent,
+                                                  IndexToolConfig)
 from llama_index import LLMPredictor, ServiceContext, load_index_from_storage
+# import torch
 
 from src.document_loader import DocumentLoader
-
+from src.langchain_wrapper import DistillGPT
+from llama_index.vector_stores import WeaviateVectorStore
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
@@ -35,6 +39,7 @@ class Chatbot:
         # self.f_template = f_template
         self.index_dir = index_dir
 
+        self.llm = DistillGPT()
         self.document_loader = DocumentLoader().clean_data()
         self.wv_client = weaviate.Client(
             url=WEAVIATE_URL,
@@ -62,12 +67,14 @@ class Chatbot:
 
     def set_index(self,):
         product_metadata = self.document_loader.get_documents_from_weaviate()
-        llm_predictor = LLMPredictor(llm=OpenAI(temperature=0, max_tokens=512))
+        llm_predictor = LLMPredictor(llm=self.llm)
 
-        storage_context = StorageContext.from_defaults()
-        service_context = ServiceContext.from_defaults(llm_predictor=llm_predictor)
+        vector_store = WeaviateVectorStore(weaviate_client=self.wv_client)
+        storage_context = StorageContext.from_defaults(vector_store=vector_store)
+
+        service_context = ServiceContext(llm_predictor=llm_predictor)
         cur_index = GPTVectorStoreIndex.from_documents(
-            product_metadata,
+            documents=product_metadata,
             service_context=service_context,
             storage_context=storage_context,
         )
@@ -88,7 +95,8 @@ class Chatbot:
 
 
     def set_chatbot(self):
-        self.llm = OpenAI(client=None, temperature=0)
+        # self.llm = OpenAI(client=None, temperature=0)
+        print(self.llm)
         index = self.get_index()
 
         query_engine = index.as_query_engine(similarity_top_k=3,)

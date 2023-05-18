@@ -18,7 +18,7 @@ INDEX_DIR = os.environ.get("INDEX_DIR", None)
 
 
 # define an LLMPredictor set number of output tokens
-llm_predictor = LLMPredictor(llm=OpenAI(temperature=0, max_tokens=512))
+# llm_predictor = LLMPredictor(llm=OpenAI(temperature=0, max_tokens=512))
 
 storage_context = StorageContext.from_defaults()
 service_context = ServiceContext.from_defaults(llm_predictor=llm_predictor)
