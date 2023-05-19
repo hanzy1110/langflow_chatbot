@@ -2,24 +2,16 @@ import os
 import sys
 import logging
 import weaviate
-# from dotenv import load_dotenv
-
-# from langchain.llms import OpenAI
+import json
 from llama_index import GPTVectorStoreIndex, GPTListIndex
 
-# do imports
-# from langchain.agents import Tool
 from langchain.chains.conversation.memory import ConversationBufferMemory
 from llama_index.storage.storage_context import StorageContext
 # from langchain.chat_models import ChatOpenAI
-# from langchain.agents import initialize_agent
-
 from llama_index.langchain_helpers.agents import (LlamaToolkit,
                                                   create_llama_chat_agent,
                                                   IndexToolConfig)
 from llama_index import LLMPredictor, ServiceContext, load_index_from_storage
-# import torch
-
 from src.document_loader import DocumentLoader
 from src.langchain_wrapper import DistillGPT
 from llama_index.vector_stores import WeaviateVectorStore
@@ -30,6 +22,10 @@ logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
 OPEN_AI_KEY = os.environ.get("OPEN_AI_KEY", None)
 WEAVIATE_URL = os.environ.get("WV_HOST", None)
 INDEX_DIR = os.environ.get("INDEX_DIR", None)
+SCHEMA_DIR = "../schema/schema.json"
+
+with open(SCHEMA_DIR, 'r') as f:
+    SCHEMA_DEF = json.load(f)
 
 
 class Chatbot:
@@ -48,12 +44,12 @@ class Chatbot:
         assert self.wv_client.is_live() and self.wv_client.is_ready()
 
     def configure_vector_db(self,):
-        class_obj = {
-              "class": "AmazonProduct",
-              "description": "Amazon product index items",
-            }
+        # class_obj = {
+        #       "class": "AmazonProduct",
+        #       "description": "Amazon product index items",
+        #     }
         try:
-            self.wv_client.schema.create_class(class_obj)
+            self.wv_client.schema.create_class(SCHEMA_DEF)
         except Exception as e:
             print(e)
 
@@ -67,6 +63,9 @@ class Chatbot:
 
     def set_index(self,):
         product_metadata = self.document_loader.get_documents_from_weaviate()
+        for doc in product_metadata[:2000]:
+            print(doc)
+
         llm_predictor = LLMPredictor(llm=self.llm)
 
         vector_store = WeaviateVectorStore(weaviate_client=self.wv_client)
@@ -93,10 +92,10 @@ class Chatbot:
             storage_context = self.set_index()
             return load_index_from_storage(storage_context)
 
-
     def set_chatbot(self):
         # self.llm = OpenAI(client=None, temperature=0)
         print(self.llm)
+        self.configure_vector_db()
         index = self.get_index()
 
         query_engine = index.as_query_engine(similarity_top_k=3,)

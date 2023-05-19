@@ -1,17 +1,21 @@
-FROM python:3.10 AS builder-image
+FROM continuumio/miniconda3 AS builder-image
+
+# avoid stuck build due to user prompt
+ARG DEBIAN_FRONTEND=noninteractive
 
 # create and activate virtual environment
 # using final folder name to avoid path issues with packages
-RUN python -m venv /home/venv
+# RUN python -m venv /home/venv
 ENV PATH="/home/venv/bin:$PATH"
 
 # install requirements
 COPY requirements.txt .
-RUN pip3 install --no-cache-dir wheel
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip
+RUN pip install wheel
+RUN pip install -r requirements.txt
 
-FROM python:3.10 AS runner-image
-COPY --from=builder-image /home/venv /home/venv
+# FROM continuumio/miniconda3 AS runner_image
+# COPY --from=builder-image /home/venv /home/venv
 
 # copy project files
 RUN mkdir /home/code

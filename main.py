@@ -2,6 +2,8 @@ from src.chatbot import Chatbot
 
 from fastapi import FastAPI
 from pydantic import BaseModel
+import tracemalloc
+tracemalloc.start()
 
 app = FastAPI()
 
@@ -17,9 +19,16 @@ class ChatbotResponse(BaseModel):
 
 
 # Instantiate your chatbot model here
+snap1 = tracemalloc.take_snapshot()
 chatbot_model = Chatbot()
 agent_chain = chatbot_model.set_chatbot()
+snap2 = tracemalloc.take_snapshot()
 
+top_stats = snap2.compare_to(snap1, 'lineno')
+
+print("[ Top 10 differences ]")
+for stat in top_stats[:10]:
+    print(stat)
 
 # Define the API endpoint for the chatbot
 @app.post("/chatbot")
