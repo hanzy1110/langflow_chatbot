@@ -3,6 +3,7 @@ import sys
 import logging
 import weaviate
 import json
+import pathlib
 from llama_index import GPTVectorStoreIndex, GPTListIndex
 
 from langchain.chains.conversation.memory import ConversationBufferMemory
@@ -22,7 +23,7 @@ logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
 OPEN_AI_KEY = os.environ.get("OPEN_AI_KEY", None)
 WEAVIATE_URL = os.environ.get("WV_HOST", None)
 INDEX_DIR = os.environ.get("INDEX_DIR", None)
-SCHEMA_DIR = "../schema/schema.json"
+SCHEMA_DIR = pathlib.Path(__file__).resolve(True).parent.parent / "schemas/schema_old.json"
 
 with open(SCHEMA_DIR, 'r') as f:
     SCHEMA_DEF = json.load(f)
@@ -63,12 +64,13 @@ class Chatbot:
 
     def set_index(self,):
         product_metadata = self.document_loader.get_documents_from_weaviate()
-        for doc in product_metadata[:2000]:
-            print(doc)
+        # for doc in product_metadata[:2000]:
+        #     print(doc)
 
         llm_predictor = LLMPredictor(llm=self.llm)
 
-        vector_store = WeaviateVectorStore(weaviate_client=self.wv_client)
+        vector_store = WeaviateVectorStore(weaviate_client=self.wv_client, 
+                                            class_prefix="AmazonProduct")
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
         service_context = ServiceContext(llm_predictor=llm_predictor)
@@ -85,7 +87,9 @@ class Chatbot:
         try:
             # llm_predictor = LLMPredictor(llm=OpenAI(temperature=0, max_tokens=512))
             # service_context = ServiceContext.from_defaults(llm_predictor=llm_predictor)
-            storage_context = StorageContext.from_defaults(persist_dir=self.index_dir)
+            vector_store = WeaviateVectorStore(weaviate_client=self.wv_client, 
+                                                class_prefix="AmazonProduct")
+            storage_context = StorageContext.from_defaults(vector_store=vector_store, persist_dir=self.index_dir)
             return load_index_from_storage(storage_context)
         except Exception as e:
             print(e)

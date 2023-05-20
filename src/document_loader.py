@@ -8,7 +8,7 @@ from llama_index import WeaviateReader
 load_dotenv(".env.dev")
 
 MAX_TEXT_LENGTH = 1000
-NUMBER_PRODUCTS = 3000
+NUMBER_PRODUCTS = 300
 DATA_PATH = Path(os.getcwd()).resolve() / "data/product_data.csv"
 OPEN_AI_KEY = os.environ.get("OPENAI_API_KEY", None)
 WEAVIATE_URL = os.environ.get("WV_HOST", None)
@@ -44,15 +44,13 @@ class DocumentLoader:
         return product_metadata
 
     def get_documents_from_weaviate(self, query=None):
-        properties = ["item_id", "marketplace", "country",
-                      "main_image_id", "domain_name",
+        properties = ["marketplace", "country",
                       "bullet_point", "item_keywords", "material",
-                      "brand", "color", "item_name", "model_name",
-                      "model_number", "product_type"]
+                      "brand", "color", "item_name",]
         reader = WeaviateReader(self.weaviate_url)
         if query:
             return reader.load_data(class_name="AmazonProduct",
-                                    properties=properties, **query)
+                                    graphql_query=query)
         else:
             return reader.load_data(class_name="AmazonProduct",
                                     properties=properties)

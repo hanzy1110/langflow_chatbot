@@ -24,10 +24,11 @@ services:
       DEFAULT_VECTORIZER_MODULE: 'text2vec-contextionary'
       LOG_LEVEL: 'debug'
       CLUSTER_HOSTNAME: 'node1'
-      AUTOSCHEMA_ENABLED: 'true'
+      AUTOSCHEMA_ENABLED: 'false'
       CONTEXTIONARY_URL: contextionary:9999
       SPELLCHECK_INFERENCE_API: 'http://text-spellcheck:8080'
       ENABLE_MODULES: 'text2vec-contextionary,text-spellcheck,ref2vec-centroid'
+      LOG_LEVEL: trace
     
     volumes:
       - ${WV_DIR}:/var/lib/weaviate
