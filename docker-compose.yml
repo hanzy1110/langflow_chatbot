@@ -22,13 +22,12 @@ services:
       AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
       PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
       DEFAULT_VECTORIZER_MODULE: 'text2vec-contextionary'
-      LOG_LEVEL: 'debug'
       CLUSTER_HOSTNAME: 'node1'
-      AUTOSCHEMA_ENABLED: 'false'
+      AUTOSCHEMA_ENABLED: 'true'
       CONTEXTIONARY_URL: contextionary:9999
       SPELLCHECK_INFERENCE_API: 'http://text-spellcheck:8080'
       ENABLE_MODULES: 'text2vec-contextionary,text-spellcheck,ref2vec-centroid'
-      LOG_LEVEL: trace
+      LOG_LEVEL: debug
     
     volumes:
       - ${WV_DIR}:/var/lib/weaviate
@@ -62,6 +61,8 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
     volumes:
       - .:/home/code
+      - ./data/.cache/huggingface:/root/.cache/huggingface
+      - ./data/.cache/torch:/root/.cache/torch
 
     restart: unless-stopped
     command: ["uvicorn", "main:app", "--reload", "--host", "0.0.0.0", "--port", "${API_PORT}"]

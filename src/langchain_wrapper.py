@@ -3,7 +3,7 @@ from typing import Any, List, Mapping, Optional
 from langchain.callbacks.manager import CallbackManagerForLLMRun
 from langchain.llms.base import LLM
 
-from transformers import AutoTokenizer, AutoModel, pipeline
+from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 
 
@@ -24,7 +24,7 @@ class DistillGPT(LLM):
 
     def load_model(self):
         self.tokenizer = AutoTokenizer.from_pretrained('distilgpt2')
-        self.model = AutoModel.from_pretrained(
+        self.model = AutoModelForCausalLM.from_pretrained(
             'distilgpt2').to(self.device)
 
     def preprocess_input(self, input_text):
@@ -34,7 +34,7 @@ class DistillGPT(LLM):
 
     def generate_response(self, input_ids):
         output = self.model.generate(
-            input_ids, max_length=100, num_return_sequences=1)
+            input_ids, max_length=2000, num_return_sequences=10)
         response = self.tokenizer.decode(output[0], skip_special_tokens=True)
         return response
 

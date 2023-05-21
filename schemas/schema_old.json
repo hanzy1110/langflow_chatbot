@@ -284,6 +284,56 @@
       },
       "vectorIndexType": "hnsw",
       "vectorizer": "text2vec-contextionary"
+    },
+    {
+      "class": "AmazonProduct_Node",
+      "description": "INDEX CLASS FOR THE AmazonProduct class",
+      "moduleConfig": {
+        "text2vec-contextionary": {
+          "vectorizeClassName": false
+        }
+      },
+      "properties": [
+        {
+          "dataType": [
+            "text"
+          ],
+          "description": "Text property",
+          "name": "text",
+          "indexFilterable": true,  
+          "indexSearchable": true
+        },
+        {
+          "dataType": [
+            "text"
+          ],
+          "description": "Document id",
+          "name": "doc_id"
+        },
+        {
+          "dataType": [
+            "text"
+          ],
+          "description": "The ref_doc_id of the Node",
+          "name": "ref_doc_id"
+        },
+        {
+          "dataType": [
+            "text"
+          ],
+          "description": "node_info (in JSON)",
+          "name": "node_info"
+        },
+        {
+          "dataType": [
+            "text"
+          ],
+          "description": "The relationships of the node (in JSON)",
+          "name": "relationships"
+        }
+      ],
+      "vectorIndexType": "hnsw",
+      "vectorizer": "text2vec-contextionary"
     }
   ]
 }

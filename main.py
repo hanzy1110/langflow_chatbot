@@ -30,7 +30,7 @@ print("[ Top 10 differences ]")
 for stat in top_stats[:10]:
     print(stat)
 
-# Define the API endpoint for the chatbot
+
 @app.post("/chatbot")
 def chatbot_endpoint(request: ChatbotRequest) -> ChatbotResponse:
     message = request.message

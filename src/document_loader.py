@@ -8,7 +8,7 @@ from llama_index import WeaviateReader
 load_dotenv(".env.dev")
 
 MAX_TEXT_LENGTH = 1000
-NUMBER_PRODUCTS = 300
+NUMBER_PRODUCTS = 3000
 DATA_PATH = Path(os.getcwd()).resolve() / "data/product_data.csv"
 OPEN_AI_KEY = os.environ.get("OPENAI_API_KEY", None)
 WEAVIATE_URL = os.environ.get("WV_HOST", None)
