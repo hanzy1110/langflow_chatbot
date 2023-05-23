@@ -23,7 +23,7 @@ class DistillGPT(LLM):
         return "custom"
 
     def load_model(self):
-        self.tokenizer = AutoTokenizer.from_pretrained('distilgpt2')
+        self.tokenizer = AutoTokenizer.from_pretrained('openai-gpt')
         self.model = AutoModelForCausalLM.from_pretrained(
             'distilgpt2').to(self.device)
 
@@ -34,7 +34,7 @@ class DistillGPT(LLM):
 
     def generate_response(self, input_ids):
         output = self.model.generate(
-            input_ids, max_length=2000, num_return_sequences=10)
+            input_ids, max_length=2000, num_return_sequences=1)
         response = self.tokenizer.decode(output[0], skip_special_tokens=True)
         return response
 
