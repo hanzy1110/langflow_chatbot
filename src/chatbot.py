@@ -78,7 +78,7 @@ class Chatbot:
         self.llm.load_model()
         llm_predictor = LLMPredictor(llm=self.llm)
 
-        model_name = "sentence-transformers/all-mpnet-base-v2"
+        model_name = "distilbert-base-uncased"
         model_kwargs = {'device': 'cpu'}
         hf = HuggingFaceEmbeddings(model_name=model_name, model_kwargs=model_kwargs)
         embed_model = LangchainEmbedding(langchain_embedding=hf)

@@ -61,8 +61,8 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
     volumes:
       - .:/home/code
-      - ./data/.cache/huggingface:/root/.cache/huggingface
-      - ./data/.cache/torch:/root/.cache/torch
+      # - ./data/.cache/huggingface:/root/.cache/huggingface
+      # - ./data/.cache/torch:/root/.cache/torch
 
     restart: unless-stopped
     command: ["uvicorn", "main:app", "--reload", "--host", "0.0.0.0", "--port", "${API_PORT}"]
